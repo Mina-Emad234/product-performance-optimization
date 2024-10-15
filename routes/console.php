@@ -9,3 +9,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote')->hourly();
 
 Schedule::command('update-products')->daily();
+Schedule::command('queue:work --max-time=60 --stop-when-empty')->everyMinute();

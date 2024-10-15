@@ -3,8 +3,10 @@
 namespace App\Console\Commands;
 
 use Carbon\Carbon;
+use App\Jobs\UpdateCacheJob;
+use App\Jobs\UpdateProductJob;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Redis;
 
@@ -28,20 +30,37 @@ class UpdateCommand extends Command
     /**
      * Execute the console command.
      */
+    // first solution
     public function handle()
     {
         //get all data
         $data = Http::get('http://127.0.0.1:8000/api/products')->json();
         //chunck data
         foreach (array_chunk($data, 1000) as $chunk) {
-            //update
-            DB::table('products')->upsert($chunk,'provider_id',['updated_at' => Carbon::now()]);
+            $jobChain[] = new UpdateProductJob($chunk);
         }
-        //check and update cache
-        if (Redis::exists('products')) {
-            Redis::del('products');
-        }
-        $all = DB::table('products')->get(['name', 'color', 'kilometers', 'price', 'provider_id','updated_at']);
-        Redis::set('products', $all->toJson());
+
+        Bus::chain(
+            Bus::batch($jobChain),
+            new UpdateCacheJob()
+        )->dispatch();
+
     }
+
+    // second solution
+    // public function handle()
+    // {
+    //     //get all data
+    //     $data = Http::get('http://127.0.0.1:8000/api/products')->json();
+    //     //chunck data
+    //     foreach (array_chunk($data, 1000) as $chunk) {
+    //         DB::table('products')->upsert($chunk,'provider_id',['updated_at' =>   Carbon::now() ]);
+    //     }
+    //     //check and update cache
+    //     if (Redis::exists('products')) {
+    //         Redis::del('products');
+    //     }
+    //     $all = DB::table('products')->get(['name', 'color', 'kilometers', 'price', 'provider_id','updated_at']);
+    //     Redis::set('products', $all->toJson());
+    // }
 }
