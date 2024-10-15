@@ -29,7 +29,6 @@ class ProductController extends Controller
             FROM `products`
         ");
 
-
         return response()->json([
             'min_price' => $data[0]->min_price,
             'max_price' => $data[0]->max_price,

@@ -37,6 +37,7 @@ class UpdateCommand extends Command
             //update
             DB::table('products')->upsert($chunk,'provider_id',['updated_at' => Carbon::now()]);
         }
+        //check and update cache
         if (Redis::exists('products')) {
             Redis::del('products');
             $all = DB::table('products')->get(['name', 'color', 'kilometers', 'price']);
