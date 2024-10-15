@@ -29,7 +29,9 @@ class UpdateProductJob implements ShouldQueue
             if ($item['updated_at']!=null) {
                 continue;
             }
-            DB::table('products')->upsert($item,'provider_id',['updated_at' =>   Carbon::now() ]);
+            $update_data[] = $item;
         }
+        DB::table('products')->upsert($update_data,'provider_id',['updated_at' =>   Carbon::now() ]);
+
     }
 }
