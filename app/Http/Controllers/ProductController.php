@@ -40,7 +40,12 @@ class ProductController extends Controller
 
     public function show($id)
     {
-        $product = DB::select('SELECT * FROM `products` WHERE `provider_id` = ?', [$id]);
-;       return response()->json($product);
+        if (!Redis::exists('product:'.$id)) {
+            $product = DB::select('SELECT * FROM `products` WHERE `provider_id` = ?', [$id]);
+            Redis::setex('product:'.$id, 3600, json_encode($product));
+        }
+
+        return json_decode(Redis::get('product:'.$id));
+
     }
 }

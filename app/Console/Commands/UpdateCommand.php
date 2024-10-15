@@ -40,10 +40,8 @@ class UpdateCommand extends Command
         //check and update cache
         if (Redis::exists('products')) {
             Redis::del('products');
-            $all = DB::table('products')->get(['name', 'color', 'kilometers', 'price']);
-            Redis::set('products', $all->toJson());
-            return 'all Done';
         }
-
+        $all = DB::table('products')->get(['name', 'color', 'kilometers', 'price', 'provider_id','updated_at']);
+        Redis::set('products', $all->toJson());
     }
 }
