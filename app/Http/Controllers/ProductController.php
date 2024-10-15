@@ -19,20 +19,23 @@ class ProductController extends Controller
 
     public function statistics()
     {
-        $results = DB::select("
+        $data = DB::select("
             SELECT
                 MIN(`price`) AS `min_price`,
                 MAX(`price`) AS `max_price`,
                 MIN(`kilometers`) AS `min_kilometers`,
-                MAX(`kilometers`) AS `max_kilometers`
+                MAX(`kilometers`) AS `max_kilometers`,
+                GROUP_CONCAT(DISTINCT color) AS colors
             FROM `products`
         ");
 
-        $colors = DB::select("SELECT DISTINCT(`color`) AS `colors` FROM `products`");
 
         return response()->json([
-            'min_max_values' => $results,
-            'colors' => $colors
+            'min_price' => $data[0]->min_price,
+            'max_price' => $data[0]->max_price,
+            'min_kilometers' => $data[0]->min_kilometers,
+            'max_kilometers' => $data[0]->max_kilometers,
+            'colors' => explode(',', $data[0]->colors),
         ])->header("Cache-Control", "max-age=86400, public");
     }
 
